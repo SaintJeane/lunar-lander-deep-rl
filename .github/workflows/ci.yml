@@ -163,4 +163,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ci-trained-model
-        path: models/final_model.pth
+        path: models/*/final_model.pth

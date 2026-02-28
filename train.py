@@ -61,10 +61,6 @@ def train_dqn(args):
 
     Args:
         args: parsed arguments used in training the agent
-        max_steps: Maximum steps per episode
-        save_dir: Directory to save model checkpoints
-        plot_dir: Directory to save training plots
-        log_interval: Episodes between progress logs
     """
     # Load configs
     train_config = TrainingConfig()

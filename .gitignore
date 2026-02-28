@@ -63,3 +63,6 @@ Thumbs.db
 .coverage
 coverage.xml
 htmlcov/
+
+# script
+run_short_test.py

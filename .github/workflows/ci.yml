@@ -123,8 +123,20 @@ jobs:
     - name: Run deterministic short training test
       run: |
         python - <<EOF
-        from train import train_dqn 
-        agent, history = train_dqn(num_episodes=5, max_steps=50, log_interval=5, seed=42) 
+        from train import train_dqn
+        
+        # Create a dummy args object with the fields train_dqn expects
+        class Args:
+          lr=None
+          gamma=None
+          batch_size=None
+          double_dqn=False
+          soft_update=False
+          tau=None
+          episodes=5
+
+        args = Args()
+        agent, history = train_dqn(args) 
         print('Short deterministic training test passed!')
         EOF
                     

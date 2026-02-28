@@ -98,9 +98,7 @@ class DQNAgent:
         self.target_net.eval()  # Set the module in evaluation mode
 
         # Optimizer and loss
-        self.optimizer = optim.Adam(
-            self.policy_net.parameters(), lr=config.learning_rate
-        )
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=config.learning_rate)
         self.loss_fn = nn.SmoothL1Loss()  # Huber loss for stability
 
         # Replay buffer
@@ -135,9 +133,7 @@ class DQNAgent:
             return None
 
         # Sample batch
-        states, actions, rewards, next_states, dones = self.replay_buffer.sample(
-            self.batch_size
-        )
+        states, actions, rewards, next_states, dones = self.replay_buffer.sample(self.batch_size)
 
         # Convert to tensors
         states = torch.tensor(states, dtype=torch.float32, device=self.device)
@@ -148,9 +144,7 @@ class DQNAgent:
         dones = torch.tensor(dones, dtype=torch.float32, device=self.device)
 
         # Current Q-values
-        current_q_values = (
-            self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
-        )
+        current_q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
 
         # Switchable implementation
         with torch.no_grad():
@@ -161,9 +155,7 @@ class DQNAgent:
 
                 # 2. Evaluate that action using target network
                 next_q_values = (
-                    self.target_net(next_states)
-                    .gather(1, next_actions.unsqueeze(1))
-                    .squeeze(1)
+                    self.target_net(next_states).gather(1, next_actions.unsqueeze(1)).squeeze(1)
                 )
             else:
                 # Standard DQN
@@ -175,9 +167,7 @@ class DQNAgent:
         loss = self.loss_fn(current_q_values, target_q_values)
         self.optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(
-            self.policy_net.parameters(), 1.0
-        )  # Gradient clipping
+        torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)  # Gradient clipping
         self.optimizer.step()
 
         # Update target network

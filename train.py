@@ -300,9 +300,7 @@ def plot_training_results(
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(
-        os.path.join(plot_dir, "reward_curve.png"), dpi=300, bbox_inches="tight"
-    )
+    plt.savefig(os.path.join(plot_dir, "reward_curve.png"), dpi=300, bbox_inches="tight")
 
 
 if __name__ == "__main__":

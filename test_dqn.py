@@ -93,9 +93,7 @@ class TestReplayBuffer:
 
         # Add some experiences
         for i in range(50):
-            buffer.push(
-                np.ones(8) * i, i % 4, float(i), np.ones(8) * (i + 1), i % 2 == 0
-            )
+            buffer.push(np.ones(8) * i, i % 4, float(i), np.ones(8) * (i + 1), i % 2 == 0)
 
         # Sample batch
         batch_size = 32
@@ -147,9 +145,7 @@ class TestDQNAgent:
 
     def test_epsilon_decay(self):
         """Test epsilon decay mechanism."""
-        agent = self.create_agent(
-            epsilon_start=1.0, epsilon_decay=0.99, epsilon_end=0.01
-        )
+        agent = self.create_agent(epsilon_start=1.0, epsilon_decay=0.99, epsilon_end=0.01)
         initial_epsilon = agent.epsilon
 
         for _ in range(10):

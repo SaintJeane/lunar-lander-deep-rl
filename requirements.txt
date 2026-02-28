@@ -9,6 +9,8 @@ tensorboard
 seaborn
 ipykernel
 pytest
+pytest-cov
 moviepy # for the recorded video storage
-black
+black==24.4.2
 black[jupyter]
+flake8==7.0.0

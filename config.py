@@ -43,9 +43,7 @@ class DQNConfig:
 
     # Device
     device: str = (
-        "cuda"
-        if torch.cuda.is_available() and os.environ.get("USE_GPU", "1") != "0"
-        else "cpu"
+        "cuda" if torch.cuda.is_available() and os.environ.get("USE_GPU", "1") != "0" else "cpu"
     )
 
 

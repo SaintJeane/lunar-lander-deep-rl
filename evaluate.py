@@ -59,9 +59,7 @@ def evaluate_agent(
 
         # Create environment
         env = gym.make(train_config.env_name, render_mode="rgb_array")
-        env = gym.wrappers.RecordVideo(
-            env, final_video_path, episode_trigger=lambda x: True
-        )
+        env = gym.wrappers.RecordVideo(env, final_video_path, episode_trigger=lambda x: True)
     elif render:
         env = gym.make(train_config.env_name, render_mode="human")
     else:
@@ -282,20 +280,14 @@ def test_single_episode(model_path=eval_config.model_path, render=True):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description="Evaluate DQN/ DDQN agent on LunarLander"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate DQN/ DDQN agent on LunarLander")
     parser.add_argument("--model", type=str, help="Path to model checkpoint")
     parser.add_argument(
         "--algo", type=str, default="dqn", choices=["dqn", "double_dqn", "double-dqn"]
     )
-    parser.add_argument(
-        "--episodes", type=int, default=100, help="Number of evaluation episodes"
-    )
+    parser.add_argument("--episodes", type=int, default=100, help="Number of evaluation episodes")
     parser.add_argument("--render", action="store_true", help="Render the environment")
-    parser.add_argument(
-        "--record", action="store_true", help="Record evaluation videos"
-    )
+    parser.add_argument("--record", action="store_true", help="Record evaluation videos")
     parser.add_argument(
         "--record-success",
         action="store_true",

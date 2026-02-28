@@ -134,6 +134,8 @@ jobs:
           soft_update=False
           tau=None
           episodes=5
+          save_dir="models/test_run"
+          plot_dir="plots/test_run"
 
         args = Args()
         agent, history = train_dqn(args) 
@@ -142,9 +144,20 @@ jobs:
                     
     - name: Verify model artifacts
       run: |
+        echo "Listing models folder..."
         ls -la models/
-        test -f models/final_model.pth
-        echo 'Model artifacts created successfully!'
+
+        # Find latest folder dynamically
+        latest_folder=$(ls -td models/*/ | head -1)
+        echo "Latest model folder: $latest_folder"
+
+        # Check for final_model.pth inside it
+        if [ -f "$latest_folder/final_model.pth" ]; then
+          echo "✅ final_model.pth found!"
+        else
+          echo "❌ final_model.pth not found in $latest_folder"
+          exit 1
+        fi
 
     - name: Upload trained model artifact
       uses: actions/upload-artifact@v4

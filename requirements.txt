@@ -10,3 +10,5 @@ seaborn
 ipykernel
 pytest
 moviepy # for the recorded video storage
+black
+black[jupyter]

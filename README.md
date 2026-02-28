@@ -14,6 +14,7 @@ A production-ready implementation of both Deep Q-Networks (DQN) and Double Deep 
 - [Algorithm Comparison](#-algorithm-comparison)
 - [Neural Network Architecture](#-neural-network-architecture)
 - [Key Features](#-key-features)
+- [Evaluation and Recording](#-evaluation-and-recording)
 - [Results](#-results)
 - [Hyper-parameters](#-hyper-parameters)
 - [Installation Options](#-installation-options)
@@ -162,58 +163,7 @@ Input (8) → Dense(128) → ReLU → Dense(128) → ReLU → Output(4)
 - **Evaluation Metrics:** Detailed performance analysis
 - **GPU Support:** Automatic CUDA detection and usage
 
-
-<<<<<<< HEAD
-### Evaluation & Recording
-=======
-### Local Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/SaintJeane/lunar-lander-dqn.git
-cd lunar-lander-dqn
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Docker Installation
-
-```bash
-# Build the Docker image
-docker-compose build
-
-# Or use pre-built image (if available)
-docker pull sainte/lunar-lander-dqn:latest
-```
-
-## 🚀 Usage
-
-### Training
-
-**Local Training:**
-```bash
-python train.py
-```
-
-**Docker Training:**
-```bash
-docker-compose up dqn-training
-```
-
-Training will:
-- Run for 2000 episodes (configurable)
-- Save checkpoints every 500 episodes
-- Save the best model based on 100-episode moving average
-- Generate training plots in `./plots/`
-- Save training history in `./models/training_history.json`
-
-### Evaluation
->>>>>>> dafa9f0f70a178a595ae8dd37bef0af630567b65
+## 📝 Evaluation and Recording
 
 **Evaluate trained model:**
 ```bash

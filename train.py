@@ -259,7 +259,7 @@ def plot_training_results(episode_rewards, moving_avg_rewards, episode_losses, p
     plt.tight_layout()
     filename = f"{algorithm_name}_results.png"
     plt.savefig(os.path.join(plot_dir, filename), dpi=300, bbox_inches="tight")
-    print(f"\nTraining plot saved to: {os.path.join(plot_dir, f'{algorithm_name.replace(" ","_").lower()}_training_results.png')}")
+    print(f"\nTraining plot saved to: {os.path.join(plot_dir, algorithm_name.replace(' ', '_').lower() + '_training_results.png')}")
 
     # Create separate reward plot for README
     plt.figure(figsize=(10, 6))

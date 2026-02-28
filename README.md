@@ -219,11 +219,11 @@ DDQN demonstrates smoother convergence and higher stability compared to standard
 <div style="display: flex; justify-content: space-around;">
   <div>
     <p><b>DQN Results Curve</b></p>
-    <img src="plots/dqn_20260227_0136/dqn_results.png" alt="DQN Plot" width="700">
+    <img src="plots/dqn_20260227_0136/dqn_results.png" alt="DQN Plot" width="800">
   </div>
   <div>
     <p><b>Double DQN Results Curve</b></p>
-    <img src="plots/double_dqn_20260227_1602/double_dqn_results.png" alt="Double DQN Plot" width="700">
+    <img src="plots/double_dqn_20260227_1602/double_dqn_results.png" alt="Double DQN Plot" width="800">
   </div>
 </div>
 
@@ -241,15 +241,15 @@ Videos were recorded during evaluation and converted to GIFs for display.
 <div style="display: flex; justify-content: space-around;">
   <div>
     <p><b>Episode 0</b></p>
-    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-0.gif" width="250">
+    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-0.gif" width="600">
   </div>
   <div>
     <p><b>Episode 1</b></p>
-    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-1.gif" width="250">
+    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-1.gif" width="600">
   </div>
   <div>
     <p><b>Episode 2</b></p>
-    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-2.gif" width="250">
+    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-2.gif" width="600">
   </div>
 </div>
 
@@ -257,15 +257,15 @@ Videos were recorded during evaluation and converted to GIFs for display.
 <div style="display: flex; justify-content: space-around;">
   <div>
     <p><b>Episode 0</b></p>
-    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-0.gif" width="250">
+    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-0.gif" width="600">
   </div>
   <div>
     <p><b>Episode 1</b></p>
-    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-1.gif" width="250">
+    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-1.gif" width="600">
   </div>
   <div>
     <p><b>Episode 2</b></p>
-    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-2.gif" width="250">
+    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-2.gif" width="600">
   </div>
 </div>
 

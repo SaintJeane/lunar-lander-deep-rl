@@ -219,11 +219,11 @@ DDQN demonstrates smoother convergence and higher stability compared to standard
 <div style="display: flex; justify-content: space-around;">
   <div>
     <p><b>DQN Results Curve</b></p>
-    <img src="plots/dqn_20260227_0136/dqn_results.png" alt="DQN Plot" width="400">
+    <img src="plots/dqn_20260227_0136/dqn_results.png" alt="DQN Plot" width="700">
   </div>
   <div>
     <p><b>Double DQN Results Curve</b></p>
-    <img src="plots/double_dqn_20260227_1602/double_dqn_results.png" alt="Double DQN Plot" width="400">
+    <img src="plots/double_dqn_20260227_1602/double_dqn_results.png" alt="Double DQN Plot" width="700">
   </div>
 </div>
 
@@ -237,43 +237,36 @@ DDQN demonstrates smoother convergence and higher stability compared to standard
 ### Visual Performance Comparison
 Videos were recorded during evaluation and converted to GIFs for display.
 
-<div style="display: flex; flex-direction: column; gap: 20px;">
-
-  <!-- Row 1 -->
-  <div style="display: flex; align-items: center; gap: 20px;">
-    <div style="width: 100px;"><b>Episode 1</b></div>
-    <div style="flex: 1; text-align: center;">
-      <p><b>DQN</b></p>
-      <img src="assets/videos/dqn_20260227_0136_rl-video-episode-0.gif" width="250">
-    </div>
-    <div style="flex: 1; text-align: center;">
-      <p><b>Double DQN</b></p>
-      <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-0.gif" width="250">
-    </div>
+<h3>DQN Episodes</h3>
+<div style="display: flex; justify-content: space-around;">
+  <div>
+    <p><b>Episode 0</b></p>
+    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-0.gif" width="250">
   </div>
-
-  <!-- Row 2 -->
-  <div style="display: flex; align-items: center; gap: 20px;">
-    <div style="width: 100px;"><b>Episode 2</b></div>
-    <div style="flex: 1; text-align: center;">
-      <img src="assets/videos/dqn_20260227_0136_rl-video-episode-1.gif" width="250">
-    </div>
-    <div style="flex: 1; text-align: center;">
-      <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-1.gif" width="250">
-    </div>
+  <div>
+    <p><b>Episode 1</b></p>
+    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-1.gif" width="250">
   </div>
-
-  <!-- Row 3 -->
-  <div style="display: flex; align-items: center; gap: 20px;">
-    <div style="width: 100px;"><b>Episode 3</b></div>
-    <div style="flex: 1; text-align: center;">
-      <img src="assets/videos/dqn_20260227_0136_rl-video-episode-2.gif" width="250">
-    </div>
-    <div style="flex: 1; text-align: center;">
-      <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-2.gif" width="250">
-    </div>
+  <div>
+    <p><b>Episode 2</b></p>
+    <img src="assets/videos/dqn_20260227_0136_rl-video-episode-2.gif" width="250">
   </div>
+</div>
 
+<h3>Double DQN Episodes</h3>
+<div style="display: flex; justify-content: space-around;">
+  <div>
+    <p><b>Episode 0</b></p>
+    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-0.gif" width="250">
+  </div>
+  <div>
+    <p><b>Episode 1</b></p>
+    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-1.gif" width="250">
+  </div>
+  <div>
+    <p><b>Episode 2</b></p>
+    <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-2.gif" width="250">
+  </div>
 </div>
 
 ## ⚙️ Hyper-parameters

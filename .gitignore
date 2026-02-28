@@ -46,10 +46,9 @@ models/*.pth
 # plots/*.png
 !plots/.gitkeep
 !videos/.gitkeep
-videos/
+/videos/
 logs/
 !docs/.gitkeep
-# !assets/videos/.gitkeep
 *.log
 -p
 

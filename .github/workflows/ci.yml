@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ['3.9', '3.10', '3.11']
     
@@ -21,13 +22,13 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Cache dependencies
+    - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
     
     - name: Install system dependencies
       run: |
@@ -37,8 +38,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov flake8 black
+        python -m pip install -r requirements.txt
+        python -m pip install pytest pytest-cov flake8 black
     
     - name: Lint with flake8
       run: |
@@ -49,9 +50,9 @@ jobs:
       run: |
         black --check . --line-length=100
     
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
-        pytest test_dqn.py -v --cov=. --cov-report=xml --cov-report=term
+        pytest test_dqn.py -v --cov=. --cov-report=xml --cov-report=term --cov-fail-under=80
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -91,9 +92,9 @@ jobs:
     
     - name: Build Docker image
       run: |
-        docker-compose build --no-cache
+        docker-compose build
     
-    - name: Test Docker container
+    - name: Smoke test Docker container
       run: |
         docker-compose run --rm dqn-training python -c "import torch; import gymnasium; print('Docker build successful!')"
 
@@ -113,18 +114,25 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y swig
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
     
-    - name: Run short training test
+    - name: Run deterministic short training test
       run: |
-        python -c "
+        python - <<EOF
         from train import train_dqn 
-        agent, history = train_dqn(num_episodes=10, max_steps=100, log_interval=5) 
-        print('Short training test passed!')
-        "
+        agent, history = train_dqn(num_episodes=5, max_steps=50, log_interval=5, seed=42) 
+        print('Short deterministic training test passed!')
+        EOF
                     
     - name: Verify model artifacts
       run: |
         ls -la models/
-        test -f models/final_model.pth || exit 1
+        test -f models/final_model.pth
         echo 'Model artifacts created successfully!'
+
+    - name: Upload trained model artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ci-trained-model
+        path: models/final_model.pth

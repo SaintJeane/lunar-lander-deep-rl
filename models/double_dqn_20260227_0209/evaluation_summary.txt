@@ -1,0 +1,4 @@
+Evaluation of model: ./models\double_dqn_20260227_0209\best_model.pth
+Mean Reward: 264.85 ± 20.41
+Success Rate: 100.0%
+Date: Fri Feb 27 14:05:44 2026

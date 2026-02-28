@@ -1,24 +1,21 @@
-# dqn_agent.py
+# agent.py
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 from collections import deque
 import random
+from config import DQNConfig
 
 
 class DQN(nn.Module):
     """
-    Deep Q-Network architecture for LunarLander.
-
-    Architecture:
-    - Input: 8-dimensional state vector (x, y, vx, vy, angle, angular_velocity, left_leg_contact, right_leg_contact)
-    - Hidden layers: 2 fully connected layers with ReLU activation
-    - Output: 4 Q-values corresponding to 4 possible actions (do nothing, fire left engine, fire main engine, fire right engine)
+    
     """
 
     def __init__(self, state_dim=8, action_dim=4, hidden_dim=128):
-        super(DQN, self).__init__()
+        # super(DQN, self).__init__()
+        super().__init__()
         self.network = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),
@@ -47,12 +44,12 @@ class ReplayBuffer:
 
     def sample(self, batch_size):
         batch = random.sample(self.buffer, batch_size)
-        states, actions, rewards, next_states, dones = zip(*batch)
+        states, actions, rewards, next_states, dones = zip(*batch) # transposes the batch structure, grouping by column
         return (
-            np.array(states),
-            np.array(actions),
+            np.array(states, dtype=np.float32),
+            np.array(actions, dtype=np.int64),
             np.array(rewards, dtype=np.float32),
-            np.array(next_states),
+            np.array(next_states, dtype=np.float32),
             np.array(dones, dtype=np.uint8),
         )
 
@@ -62,7 +59,7 @@ class ReplayBuffer:
 
 class DQNAgent:
     """
-    DQN Agent with experience replay and target network.
+    DQN and DDQN Agents with experience replay and target network.
 
     Key components:
     1. Policy Network: Current Q-network used for action selection
@@ -73,43 +70,39 @@ class DQNAgent:
 
     def __init__(
         self,
-        state_dim=8,
-        action_dim=4,
-        hidden_dim=128,
-        learning_rate=1e-3,
-        gamma=0.99,
-        epsilon_start=1.0,
-        epsilon_end=0.01,
-        epsilon_decay=0.995,
-        buffer_capacity=100000,
-        batch_size=64,
-        target_update_freq=10,
+        state_dim,
+        action_dim,
+        config: DQNConfig,
     ):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(config.device)
         print(f"Using device: {self.device}")
 
-        # Hyperparameters
+        # Hyperparameters from config
         self.action_dim = action_dim
-        self.gamma = gamma
-        self.epsilon = epsilon_start
-        self.epsilon_end = epsilon_end
-        self.epsilon_decay = epsilon_decay
-        self.batch_size = batch_size
-        self.target_update_freq = target_update_freq
+        self.gamma = config.gamma
+        self.epsilon = config.epsilon_start
+        self.epsilon_end = config.epsilon_end
+        self.epsilon_decay = config.epsilon_decay
+        self.batch_size = config.batch_size
+        self.target_update_freq = config.target_update_freq
         self.update_counter = 0
+        
+        self.use_double_dqn = config.use_double_dqn
+        self.use_soft_update = config.use_soft_update
+        self.tau = config.tau
 
         # Networks
-        self.policy_net = DQN(state_dim, action_dim, hidden_dim).to(self.device)
-        self.target_net = DQN(state_dim, action_dim, hidden_dim).to(self.device)
+        self.policy_net = DQN(state_dim, action_dim, config.hidden_dim).to(self.device)
+        self.target_net = DQN(state_dim, action_dim, config.hidden_dim).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.target_net.eval()
+        self.target_net.eval() # Set the module in evaluation mode
 
         # Optimizer and loss
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=config.learning_rate)
         self.loss_fn = nn.SmoothL1Loss()  # Huber loss for stability
 
         # Replay buffer
-        self.replay_buffer = ReplayBuffer(buffer_capacity)
+        self.replay_buffer = ReplayBuffer(config.buffer_capacity)
 
     def select_action(self, state, training=True):
         """
@@ -118,6 +111,8 @@ class DQNAgent:
         With probability epsilon: choose random action (exploration)
         With probability 1-epsilon: choose best action from Q-network (exploitation)
         """
+        state = state.astype(np.float32) # Normalize state
+        
         if training and random.random() < self.epsilon:
             return random.randrange(self.action_dim)
 
@@ -133,6 +128,7 @@ class DQNAgent:
         DQN Update Rule:
         Loss = (r + γ * max_a' Q_target(s', a') - Q_policy(s, a))^2
         """
+        # Replay Buffer Warmup Guard (Preventing sampling crash)
         if len(self.replay_buffer) < self.batch_size:
             return None
 
@@ -140,20 +136,31 @@ class DQNAgent:
         states, actions, rewards, next_states, dones = self.replay_buffer.sample(self.batch_size)
 
         # Convert to tensors
-        states = torch.FloatTensor(states).to(self.device)
+        states = torch.tensor(states, dtype=torch.float32, device=self.device)
+        # states = torch.FloatTensor(states).to(device=self.device)
         actions = torch.LongTensor(actions).to(self.device)
-        rewards = torch.FloatTensor(rewards).to(self.device)
-        next_states = torch.FloatTensor(next_states).to(self.device)
-        dones = torch.FloatTensor(dones).to(self.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+        next_states = torch.tensor(next_states, dtype=torch.float32, device=self.device)
+        dones = torch.tensor(dones, dtype=torch.float32, device=self.device)
 
         # Current Q-values
         current_q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
-
-        # Target Q-values (using target network)
+          
+        # Switchable implementation  
         with torch.no_grad():
-            next_q_values = self.target_net(next_states).max(1)[0]
+            if self.use_double_dqn:
+                # Double DQN
+                # 1. Select best action using policy network
+                next_actions = self.policy_net(next_states).argmax(1)
+                
+                # 2. Evaluate that action using target network
+                next_q_values = self.target_net(next_states).gather(1, next_actions.unsqueeze(1)).squeeze(1)
+            else:
+                # Standard DQN
+                next_q_values = self.target_net(next_states).max(1)[0]
+                
             target_q_values = rewards + (1 - dones) * self.gamma * next_q_values
-
+                  
         # Compute loss and update
         loss = self.loss_fn(current_q_values, target_q_values)
         self.optimizer.zero_grad()
@@ -161,11 +168,23 @@ class DQNAgent:
         torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)  # Gradient clipping
         self.optimizer.step()
 
-        # Update target network
+        # Update target network        
         self.update_counter += 1
-        if self.update_counter % self.target_update_freq == 0:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-
+        
+        if self.use_soft_update:
+            # Soft update (Polyak averaging) - smoother convergence and slightly more stable curves
+            for target_param, policy_param in zip(
+                self.target_net.parameters(),
+                self.policy_net.parameters()
+            ):
+                target_param.data.copy_(
+                    self.tau * policy_param.data + (1.0 - self.tau) * target_param.data
+                )
+        else:
+            # Hard update
+            if self.update_counter % self.target_update_freq == 0:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
+        
         return loss.item()
 
     def decay_epsilon(self):

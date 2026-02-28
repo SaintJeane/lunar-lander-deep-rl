@@ -19,6 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache
 
 # Virtual Environment
 venv/
@@ -42,15 +43,19 @@ ENV/
 # Project specific
 models/*.pth
 !models/.gitkeep
-plots/*.png
+# plots/*.png
 !plots/.gitkeep
+!videos/.gitkeep
 videos/
 logs/
+!docs/.gitkeep
+!assets/videos/.gitkeep
 *.log
+-p
 
 # OS
 .DS_Store
 Thumbs.db
 
 # Docker
-.dockerignore
+# .dockerignore

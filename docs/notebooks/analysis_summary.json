@@ -1,0 +1,14 @@
+{
+  "run_id": "double_dqn_20260227_1602",
+  "overall_stats": {
+    "mean": 186.596167051485,
+    "success_rate": 70.3,
+    "max": 318.3642178460212
+  },
+  "recent_stats": {
+    "mean": 258.3396378691075,
+    "success_rate": 94.39999999999999,
+    "max": 318.3642178460212
+  },
+  "total_episodes": 2000
+}

@@ -1,26 +1,29 @@
-# 🚀 LunarLander DQN - Deep Reinforcement Learning
+# 🚀 LunarLander - Deep Reinforcement Learning
 
-A production-ready implementation of Deep Q-Networks (DQN) for solving the OpenAI Gymnasium LunarLander-v2 environment. This project demonstrates advanced deep reinforcement learning techniques including experience replay, target networks, and epsilon-greedy exploration.
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Gymnasium](https://img.shields.io/badge/Gymnasium-v0.29.1-green)](https://gymnasium.farama.org/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker&logoColor=white)](https://www.docker.com/)
 
-![LunarLander](https://gymnasium.farama.org/assets/lunar_lander.gif)
+A production-ready implementation of both Deep Q-Networks (DQN) and Double Deep Q-Networks (DDQN) for solving the LunarLander-v2 environment from Gymnasium. This project demonstrates advanced deep reinforcement learning techniques including experience replay, target networks, epsilon-greedy exploration, and overestimation bias reduction.
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Algorithm](#algorithm)
-- [Neural Network Architecture](#neural-network-architecture)
-- [Key Features](#key-features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Results](#results)
-- [Project Structure](#project-structure)
-- [Hyperparameters](#hyperparameters)
-- [Docker Support](#docker-support)
-- [Future Improvements](#future-improvements)
+- [Overview](#-overview)
+- [Project Structure](#-project-structure)
+- [Algorithm Comparison](#-algorithm-comparison)
+- [Neural Network Architecture](#-neural-network-architecture)
+- [Key Features](#-key-features)
+- [Results](#-results)
+- [Hyper-parameters](#-hyper-parameters)
+- [Installation Options](#-installation-options)
+- [Usage](#-usage)
+- [Docker Support](#-docker-support)
+- [Future Improvements](#-future-improvements)
 
 ## 🎯 Overview
 
-The LunarLander environment challenges an agent to land a spacecraft safely on a landing pad by controlling its main and side thrusters. The agent receives a continuous 8-dimensional state vector and must select one of 4 discrete actions at each timestep.
+The agent must learn to land a spacecraft safely on a landing pad using discrete controls (thrusters).
 
 **Environment Details:**
 - **State Space:** 8 dimensions (position, velocity, angle, angular velocity, leg contact)
@@ -28,11 +31,47 @@ The LunarLander environment challenges an agent to land a spacecraft safely on a
 - **Reward:** +100 for landing, -100 for crashing, fuel consumption penalties
 - **Solved Criteria:** Average reward ≥ 200 over 100 consecutive episodes
 
-## 🧠 Algorithm
+## 📁 Project Structure
 
-This implementation uses **Deep Q-Networks (DQN)**, a value-based reinforcement learning algorithm that approximates the optimal action-value function Q*(s,a) using a deep neural network.
+```
+lunar-lander-dqn/
+├── agent.py               # DQN and DDQN agents implementation
+│   ├── DQN (nn.Module)    # Neural network architecture
+│   ├── ReplayBuffer       # Experience replay buffer
+│   └── DQNAgent           # Main agent class
+├── train.py               # Training script
+├── evaluate.py            # Evaluation script
+├── test_dqn.py            # Unit tests script for the project
+├── config.py              # Configurations of the LunarLander project
+├── convert_videos.py      # convert recorded videos to GIFs
+├── analysis.ipynb         # analysis for the trained agents
+├── requirements.txt       # Python dependencies
+├── Dockerfile            # Docker container definition
+├── docker-compose.yml    # Docker compose configuration
+├── README.md             # This file
+├── models/               # Saved model checkpoints
+│   ├── double_dqn/       # Double DQN save model, its checkpoints and metadata
+│   ├── dqn/              # DQN saved model, its checkpoints and metadata
+│   └── training_history.json
+├── plots/                # Training visualizations
+│   ├── double_dqn/       # .png plots for the DDQN, results and reward curves
+│   └── dqn/              # .png plots for DQN
+├── assets/videos/        # GIFs for the recorded videos
+└── logs/                 # Training logs
+```
 
-### DQN Update Rule
+
+## 🧠 Algorithm Comparison
+
+This project implements and compares:
+
+- **Deep Q-Network (DQN)**
+
+- **Double Deep Q-Network (DDQN)**
+
+Both are value-based reinforcement learning algorithms that approximate the optimal action-value function Q*(s,a) using deep neural networks.
+
+### 1️⃣ DQN Update Rule
 
 ```
 Q(s, a) ← Q(s, a) + α[r + γ max Q(s', a') - Q(s, a)]
@@ -45,6 +84,31 @@ Where:
 - `s'`: next state
 - `γ`: discount factor (0.99)
 - `α`: learning rate (0.001)
+
+DQN uses the **target network** to both:
+
+- Select the best next action
+
+- Evaluate its value
+
+⚠️ This can lead to overestimation bias, where Q-values are systematically overestimated.
+
+### 2️⃣ Double DQN (DDQN) Update Rule
+
+Double DQN decouples action selection from evaluation:
+
+```code
+a* = argmax Q_policy(s', a')
+y  = r + γ Q_target(s', a*)
+```
+
+✅ Key difference:
+
+- Action selection → policy network
+
+- Action evaluation → target network
+
+This reduces overestimation bias and improves training stability.
 
 ### Key Components
 
@@ -80,7 +144,7 @@ Input (8) → Dense(128) → ReLU → Dense(128) → ReLU → Output(4)
 
 **Optimization:**
 - **Optimizer:** Adam
-- **Learning Rate:** 0.001
+- **Learning Rate:** 0.0001
 - **Loss Function:** Smooth L1 Loss (Huber Loss)
 - **Gradient Clipping:** Max norm of 1.0
 - **Batch Size:** 64
@@ -98,73 +162,32 @@ Input (8) → Dense(128) → ReLU → Dense(128) → ReLU → Output(4)
 - **Evaluation Metrics:** Detailed performance analysis
 - **GPU Support:** Automatic CUDA detection and usage
 
-## 📦 Installation
 
-### Local Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/saintjeane/lunar-lander-dqn.git
-cd lunar-lander-dqn
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Docker Installation
-
-```bash
-# Build the Docker image
-docker-compose build
-
-# Or use pre-built image (if available)
-docker pull sainte/lunar-lander-dqn:latest
-```
-
-## 🚀 Usage
-
-### Training
-
-**Local Training:**
-```bash
-python train.py
-```
-
-**Docker Training:**
-```bash
-docker-compose up dqn-training
-```
-
-Training will:
-- Run for 2000 episodes (configurable)
-- Save checkpoints every 500 episodes
-- Save the best model based on 100-episode moving average
-- Generate training plots in `./plots/`
-- Save training history in `./models/training_history.json`
-
-### Evaluation
+### Evaluation & Recording
 
 **Evaluate trained model:**
 ```bash
-python evaluate.py --model ./models/best_model.pth --episodes 100
+python evaluate.py --model ./models/dqn/best_model.pth --episodes 100
 ```
 
 **Run single test episode with visualization:**
 ```bash
-python evaluate.py --model ./models/best_model.pth --test --render
+python evaluate.py --model ./models/double_dqn/best_model.pth --test --render
 ```
 
 **Record video:**
 ```bash
-python evaluate.py --model ./models/best_model.pth --episodes 10 --record
+python evaluate.py --model ./models/double_dqn/best_model.pth --episodes 3 --record
 ```
 
-**Docker Evaluation:**
+***Run a successfully best trained model with maximum reward and record its video***
 ```bash
+python evaluate.py --record-success
+```
+
+**Docker Evaluation:** 
+```bash
+# requires xvfb to be configured in docker-compose
 docker-compose --profile evaluation up dqn-evaluation
 ```
 
@@ -172,62 +195,92 @@ docker-compose --profile evaluation up dqn-evaluation
 
 ### Training Progress
 
-After training for 2000 episodes, the DQN agent successfully learns to land the lunar lander:
+After training for 2000 episodes, for the both algorithms with identical hyperparameters:
 
-**Performance Metrics:**
-- **Best Average Reward:** ~250+ (over 100 episodes)
-- **Success Rate:** >95% (episodes with reward ≥ 200)
-- **Training Time:** ~2-3 hours on CPU, ~30-45 minutes on GPU
-- **Episodes to Solve:** ~800-1200 episodes
+**DQN Performance**
+- **Best Average Reward (100 episodes):** ~240–260
+- **Success Rate:** ~79-84%
+- **Episodes to solve:** ~900–1200
+- **Reward Variance:** Moderate
 
-### Learning Curve
+**Double DQN Performance**
+- **Best Average Reward (100 episodes):** ~260–280
+- **Success Rate:** ~96–100%
+- **Episodes to Solve:** ~800–1000
+- **Reward Variance:** Lower
+- **Training Stability:** Improved
 
-The agent shows consistent improvement:
-- **Episodes 0-500:** Exploration phase, highly variable rewards
-- **Episodes 500-1000:** Rapid learning, average reward increases
-- **Episodes 1000-2000:** Convergence, stable high performance
+### Training Curves
 
-### Sample Evaluation Results
+The result curves for both DQN and Double-DQN.
 
-```
-Evaluation Results (100 episodes):
-=====================================
-Mean Reward: 257.34 ± 45.21
-Min Reward: 142.56
-Max Reward: 298.73
-Success Rate: 97.0%
-```
+DDQN demonstrates smoother convergence and higher stability compared to standard DQN.
 
-## 📁 Project Structure
+<div style="display: flex; justify-content: space-around;">
+  <div>
+    <p><b>DQN Results Curve</b></p>
+    <img src="plots/dqn_20260227_0136/dqn_results.png" alt="DQN Plot" width="800">
+  </div>
+  <div>
+    <p><b>Double DQN Results Curve</b></p>
+    <img src="plots/double_dqn_20260227_1602/double_dqn_results.png" alt="Double DQN Plot" width="800">
+  </div>
+</div>
 
-```
-lunar-lander-dqn/
-├── dqn_agent.py           # DQN agent implementation
-│   ├── DQN (nn.Module)    # Neural network architecture
-│   ├── ReplayBuffer       # Experience replay buffer
-│   └── DQNAgent           # Main agent class
-├── train.py               # Training script
-├── evaluate.py            # Evaluation script
-├── requirements.txt       # Python dependencies
-├── Dockerfile            # Docker container definition
-├── docker-compose.yml    # Docker compose configuration
-├── README.md             # This file
-├── models/               # Saved model checkpoints
-│   ├── best_model.pth
-│   ├── final_model.pth
-│   └── training_history.json
-├── plots/                # Training visualizations
-│   ├── training_results.png
-│   └── reward_curve.png
-├── videos/               # Recorded episodes
-└── logs/                 # Training logs
-```
+**📈 Learning Behavior Comparison**
+| Training Phase | DQN                         | DDQN                           |
+| -------------- | --------------------------- | ------------------------------ |
+| 0–500 Episodes | High exploration            | High exploration               |
+| 500–1000       | Rapid but noisy improvement | Rapid and smoother improvement |
+| 1000–2000      | Occasional oscillations     | Stable convergence             |
 
-## ⚙️ Hyperparameters
+### Visual Performance Comparison
+Videos were recorded during evaluation and converted to GIFs for display.
+
+<div style="display: flex; flex-direction: column; gap: 20px;">
+
+  <!-- Row 1 -->
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <div style="width: 100px;"><b>Episode 1</b></div>
+    <div style="flex: 1; text-align: center;">
+      <p><b>DQN</b></p>
+      <img src="assets/videos/dqn_20260227_0136_rl-video-episode-0.gif" width="600">
+    </div>
+    <div style="flex: 1; text-align: center;">
+      <p><b>Double DQN</b></p>
+      <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-0.gif" width="600">
+    </div>
+  </div>
+
+  <!-- Row 2 -->
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <div style="width: 100px;"><b>Episode 2</b></div>
+    <div style="flex: 1; text-align: center;">
+      <img src="assets/videos/dqn_20260227_0136_rl-video-episode-1.gif" width="600">
+    </div>
+    <div style="flex: 1; text-align: center;">
+      <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-1.gif" width="600">
+    </div>
+  </div>
+
+  <!-- Row 3 -->
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <div style="width: 100px;"><b>Episode 3</b></div>
+    <div style="flex: 1; text-align: center;">
+      <img src="assets/videos/dqn_20260227_0136_rl-video-episode-2.gif" width="600">
+    </div>
+    <div style="flex: 1; text-align: center;">
+      <img src="assets/videos/double_dqn_20260227_0209_rl-video-episode-2.gif" width="600">
+    </div>
+  </div>
+
+</div>
+
+## ⚙️ Hyper-parameters
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
-| Learning Rate | 0.001 | Adam optimizer learning rate |
+| Learning Rate | 0.0001 | Adam optimizer learning rate |
 | Gamma (γ) | 0.99 | Discount factor for future rewards |
 | Epsilon Start | 1.0 | Initial exploration rate |
 | Epsilon End | 0.01 | Minimum exploration rate |
@@ -250,40 +303,6 @@ lunar-lander-dqn/
 - Increase target update frequency to 20
 - Increase buffer capacity to 200,000
 
-## 🐳 Docker Support
-
-### Build and Run
-
-```bash
-# Build image
-docker-compose build
-
-# Train agent
-docker-compose up dqn-training
-
-# Evaluate agent
-docker-compose --profile evaluation up dqn-evaluation
-```
-
-### Volume Mounts
-
-The Docker setup includes volume mounts for:
-- `./models/` - Model checkpoints persist across runs
-- `./plots/` - Training visualizations
-- `./videos/` - Recorded evaluation episodes
-- `./logs/` - Training logs
-
-### Custom Configuration
-
-To modify training parameters, edit `train.py` or pass environment variables:
-
-```yaml
-# In docker-compose.yml
-environment:
-  - NUM_EPISODES=3000
-  - LEARNING_RATE=0.002
-```
-
 ## 🔬 Technical Details
 
 ### DQN Algorithm Flow
@@ -302,9 +321,26 @@ environment:
      - Every C steps: update target network
    - Decay ε
 
+### Double DQN Algorithm Flow
+
+1. Initialize policy and target networks
+2. Store transitions in replay buffer
+3. Select best next action using policy network:
+
+      ```code
+      a* = argmax Q_policy(s', a')
+      ```
+4. Evaluate using target network:
+
+      ```code
+      y = r + γ Q_target(s', a*)
+      ```
+5. Minimize TD error
+6. Periodically update target network
+
 ### Loss Function
 
-We use Smooth L1 Loss (Huber Loss) for better stability:
+I used Smooth L1 Loss (Huber Loss) for better stability:
 
 ```python
 L = {
@@ -323,31 +359,151 @@ To prevent exploding gradients:
 torch.nn.utils.clip_grad_norm_(parameters, max_norm=1.0)
 ```
 
+## 📦 Installation Options
+
+### 1. Local Installation
+
+```Bash
+# Clone the repository
+git clone https://github.com/saintjeane/lunar-lander-deep-rl.git
+cd lunar-lander-dqn
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Docker Installation
+
+```Bash
+# Build the Docker image
+docker-compose build
+
+# Or use pre-built image (if available)
+docker pull sainte/lunar-lander-deep-rl:latest
+```
+
+### 3. Automated Setup using `setup.sh`
+
+```Bash
+# First clone the repository and then run the command once
+chmod +x setup.sh
+./setup.sh
+```
+
+Then activate the virtual environment manually
+```Bash
+# Linux/macOS
+source venv/bin/activate
+
+# Windows (PowerShell/Git Bash)
+source venv/Scripts/activate
+```
+
+## 🚀 Usage
+
+### Training
+
+**Local Training:**
+```Bash
+python train.py # defaults to standard dqn
+python train.py --double-dqn # trains the double dqn agent
+```
+You can also train the agents with the desired hyperparameters (check `train.py` script for the CLI commands - commented out)
+
+**Docker Training:**
+```Bash
+docker-compose up dqn-training
+```
+
+Training will:
+- Run for 2000 episodes (configurable)
+- Save checkpoints every 500 episodes
+- Save the best model based on 100-episode moving average
+- Generate training plots in `./plots/`
+- Save training history in `./models/training_history.json`
+
+### Workflow shortcuts with `Makefile`
+
+The Makefile provides convenient commands for common tasks:
+
+```Bash
+make setup      # Run setup.sh to initialize environment
+make install    # Install dependencies
+make train      # Train the agent
+make evaluate   # Evaluate agent with best model
+make unit-test  # Run unit tests
+make format     # Format project using black
+make clean      # Remove logs, plots, videos, and assets
+make help       # Show available commands
+```
+
+## 🐳 Docker Support
+
+### Build and Run
+
+```bash
+# Build image
+docker-compose build
+
+# Train agent
+docker-compose up dqn-training
+
+# Evaluate agent
+docker-compose --profile evaluation up dqn-evaluation
+```
+
+To enable video recording within Docker, the dqn-evaluation service uses xvfb-run to simulate a display buffer.
+
+```YAML
+# docker-compose.yml excerpt
+dqn-evaluation:
+    # ...
+    command: xvfb-run -s "-screen 0 1024x768x24" python evaluate.py --model ./models/best_model.pth --record
+```
+
+### Volume Mounts
+
+The Docker setup includes volume mounts for:
+- `./models/` - Model checkpoints persist across runs
+- `./plots/` - Training visualizations
+- `./videos/` - Recorded evaluation episodes
+- `./logs/` - Training logs
+
+### Custom Configuration
+
+To modify training parameters, edit `config.py` or pass environment variables:
+
+```yaml
+# In docker-compose.yml
+environment:
+  - NUM_EPISODES=3000
+  - LEARNING_RATE=0.0005
+```
+
 ## 🎯 Future Improvements
 
 ### Algorithmic Enhancements
 
-1. **Double DQN (DDQN)**
-   - Reduces overestimation bias
-   - Uses policy network for action selection
-   - Uses target network for value estimation
-
-2. **Dueling DQN**
+1. **Dueling DQN**
    - Separate value and advantage streams
    - Better representation of state values
    - Particularly useful for states with similar action values
 
-3. **Prioritized Experience Replay**
+2. **Prioritized Experience Replay**
    - Sample important transitions more frequently
    - Use TD-error as priority metric
    - Improves sample efficiency
 
-4. **Noisy Networks**
+3. **Noisy Networks**
    - Replace ε-greedy with parametric noise
    - Learn exploration strategy
    - Better for hard exploration problems
 
-5. **Rainbow DQN**
+4. **Rainbow DQN**
    - Combines multiple DQN improvements
    - State-of-the-art performance
    - Includes all above enhancements plus more
@@ -359,22 +515,6 @@ torch.nn.utils.clip_grad_norm_(parameters, max_norm=1.0)
 - **Multi-environment Training** for generalization
 - **Distributed Training** for faster convergence
 - **A/B Testing Framework** for algorithm comparison
-
-## 📚 References
-
-1. **DQN Paper:** Mnih et al. (2015) - "Human-level control through deep reinforcement learning"
-2. **Gymnasium Documentation:** https://gymnasium.farama.org/
-3. **OpenAI Spinning Up:** https://spinningup.openai.com/
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## 📄 License
 
@@ -393,5 +533,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - The reinforcement learning community
 
 ---
-
-⭐ If you find this project helpful, please consider giving it a star!

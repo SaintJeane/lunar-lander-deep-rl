@@ -1,46 +1,58 @@
 # config.py
 """
-Configuration management for DQN LunarLander project.
+Configuration management for LunarLander project.
 Centralizes all hyperparameters and settings.
 """
 
 from dataclasses import dataclass
 import os
-
+import torch
+import numpy as np
 
 @dataclass
 class DQNConfig:
     """DQN Agent hyperparameters."""
 
     # Network architecture
-    state_dim: int = 8
-    action_dim: int = 4
     hidden_dim: int = 128
 
     # Training hyperparameters
-    learning_rate: float = 1e-3
+    learning_rate: float = 1e-4 # try 5e-4 
     gamma: float = 0.99
     batch_size: int = 64
 
     # Exploration parameters
     epsilon_start: float = 1.0
     epsilon_end: float = 0.01
-    epsilon_decay: float = 0.995
+    epsilon_decay: float = 0.995 
 
     # Memory
-    buffer_capacity: int = 100000
+    buffer_capacity: int = 100000 # 100_000
 
     # Target network
     target_update_freq: int = 10
+    
+    # Gradient clipping
+    max_grad_norm: float = 1.0
+    
+    # Other Features
+    use_double_dqn: bool = True
+    use_soft_update: bool = True
+    tau: float = 0.01 # try 0.05 
 
     # Device
-    device: str = "cuda" if os.environ.get("USE_GPU", "auto") == "auto" else "cpu"
+    device: str = (
+        "cuda" 
+        if torch.cuda.is_available() and os.environ.get("USE_GPU", "1") != "0"
+        else "cpu"
+        )
 
 
 @dataclass
 class TrainingConfig:
     """Training loop configuration."""
-
+    env_name: str = "LunarLander-v2"
+    seed: int = 42
     num_episodes: int = 2000
     max_steps: int = 1000
     log_interval: int = 10
@@ -79,6 +91,9 @@ def get_config(config_type="training"):
         Configuration dataclass instance
     """
     configs = {"training": TrainingConfig(), "evaluation": EvaluationConfig(), "dqn": DQNConfig()}
+    
+    if config_type not in configs:
+        raise ValueError(f"Invalid config type: {config_type}")
     return configs.get(config_type, TrainingConfig())
 
 

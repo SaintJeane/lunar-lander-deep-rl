@@ -1,15 +1,32 @@
 # test_dqn.py
 """
-Unit tests for DQN implementation.
+Unit tests for DQN/ DDQN implementations.
 Run with: pytest test_dqn.py -v
 """
 
 import pytest
 import torch
 import numpy as np
-from dqn_agent import DQN, ReplayBuffer, DQNAgent
 import gymnasium as gym
 
+from config import DQNConfig, TrainingConfig
+from agent import DQN, ReplayBuffer, DQNAgent
+
+@pytest.fixture
+def make_agent():
+    def _make_agent(**overrides):
+        config = DQNConfig()
+        for k, v in overrides.items():
+            setattr(config, k, v)
+        return DQNAgent(state_dim=8, action_dim=4, config=config)
+    return _make_agent
+    
+@pytest.fixture
+def make_env():
+    train_config = TrainingConfig()
+    env = gym.make(train_config.env_name)
+    yield env
+    env.close()        
 
 class TestDQN:
     """Test DQN neural network."""
@@ -87,10 +104,16 @@ class TestReplayBuffer:
 
 class TestDQNAgent:
     """Test DQN agent."""
+    
+    def create_agent(self, **overrides):
+        config = DQNConfig()
+        for k, v in overrides.items():
+            setattr(config, k, v)
+        return DQNAgent(8, 4, config)
 
     def test_agent_initialization(self):
         """Test agent initializes correctly."""
-        agent = DQNAgent()
+        agent = self.create_agent()
         assert agent.policy_net is not None
         assert agent.target_net is not None
         assert agent.replay_buffer is not None
@@ -98,7 +121,7 @@ class TestDQNAgent:
 
     def test_action_selection_exploration(self):
         """Test epsilon-greedy exploration."""
-        agent = DQNAgent(epsilon_start=1.0)
+        agent = self.create_agent(epsilon_start=1.0)
         state = np.random.randn(8)
 
         # With epsilon=1.0, should be random
@@ -108,7 +131,7 @@ class TestDQNAgent:
 
     def test_action_selection_exploitation(self):
         """Test greedy action selection."""
-        agent = DQNAgent(epsilon_start=0.0)
+        agent = self.create_agent(epsilon_start=0.0)
         state = np.random.randn(8)
 
         # With epsilon=0.0, should always pick same action for same state
@@ -118,7 +141,7 @@ class TestDQNAgent:
 
     def test_epsilon_decay(self):
         """Test epsilon decay mechanism."""
-        agent = DQNAgent(epsilon_start=1.0, epsilon_decay=0.99, epsilon_end=0.01)
+        agent = self.create_agent(epsilon_start=1.0, epsilon_decay=0.99, epsilon_end=0.01)
         initial_epsilon = agent.epsilon
 
         for _ in range(10):
@@ -129,7 +152,7 @@ class TestDQNAgent:
 
     def test_update_requires_batch(self):
         """Test update returns None when buffer too small."""
-        agent = DQNAgent(batch_size=64)
+        agent = self.create_agent(batch_size=64)
 
         # Add only a few experiences
         for i in range(10):
@@ -140,7 +163,7 @@ class TestDQNAgent:
 
     def test_update_with_sufficient_data(self):
         """Test update works with enough data."""
-        agent = DQNAgent(batch_size=32)
+        agent = self.create_agent(batch_size=32)
 
         # Add enough experiences
         for i in range(100):
@@ -155,7 +178,7 @@ class TestDQNAgent:
 
     def test_save_and_load(self, tmp_path):
         """Test model saving and loading."""
-        agent1 = DQNAgent()
+        agent1 = self.create_agent()
 
         # Train a bit
         for i in range(100):
@@ -169,7 +192,7 @@ class TestDQNAgent:
         agent1.save(save_path)
 
         # Load into new agent
-        agent2 = DQNAgent()
+        agent2 = self.create_agent()
         agent2.load(save_path)
 
         # Check weights are the same
@@ -184,10 +207,10 @@ class TestDQNAgent:
 class TestIntegration:
     """Integration tests with actual environment."""
 
-    def test_environment_compatibility(self):
+    def test_environment_compatibility(self, make_agent, make_env):
         """Test agent works with LunarLander environment."""
-        env = gym.make("LunarLander-v2")
-        agent = DQNAgent()
+        env = make_env
+        agent = make_agent()
 
         state, _ = env.reset()
         action = agent.select_action(state)
@@ -196,12 +219,11 @@ class TestIntegration:
         assert state.shape == (8,)
         assert 0 <= action < 4
         assert isinstance(reward, float)
-        env.close()
 
-    def test_single_episode(self):
+    def test_single_episode(self, make_env, make_agent):
         """Test agent can complete a full episode."""
-        env = gym.make("LunarLander-v2")
-        agent = DQNAgent()
+        env = make_env
+        agent = make_agent()
 
         state, _ = env.reset()
         total_reward = 0
@@ -223,12 +245,11 @@ class TestIntegration:
 
         assert steps > 0
         assert isinstance(total_reward, float)
-        env.close()
 
-    def test_training_loop(self):
+    def test_training_loop(self, make_env, make_agent):
         """Test basic training loop works."""
-        env = gym.make("LunarLander-v2")
-        agent = DQNAgent(batch_size=32)
+        env = make_env
+        agent = make_agent(batch_size=32)
 
         # Run a few episodes
         for episode in range(5):
@@ -253,15 +274,14 @@ class TestIntegration:
 
         # Check that agent has learned something (buffer is populated)
         assert len(agent.replay_buffer) > 0
-        env.close()
 
 
 class TestEdgeCases:
     """Test edge cases and error handling."""
 
-    def test_nan_state(self):
+    def test_nan_state(self, make_agent):
         """Test agent handles NaN states gracefully."""
-        agent = DQNAgent()
+        agent = make_agent()
         state = np.array([np.nan] * 8)
 
         # Should not crash, though behavior may be undefined
@@ -272,9 +292,9 @@ class TestEdgeCases:
             # It's okay if it raises an exception, we just want to catch it
             assert isinstance(e, Exception)
 
-    def test_extreme_state_values(self):
+    def test_extreme_state_values(self, make_agent):
         """Test agent with extreme state values."""
-        agent = DQNAgent()
+        agent = make_agent()
         state = np.array([1e10, -1e10, 0, 0, 0, 0, 0, 0])
 
         action = agent.select_action(state, training=False)

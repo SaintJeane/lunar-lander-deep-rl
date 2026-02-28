@@ -1,25 +1,32 @@
 version: '3.8'
 
 services:
-  dqn-training:
+  dqn-base:
     build: .
-    container_name: lunar-lander-dqn
+    image: lunar-lander-deep-rl
+  dqn-training:
+    image: lunar-lander-deep-rl
+    container_name: lunar-lander-train
+    restart: "no"
+    tty: true
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./models:/app/models
       - ./plots:/app/plots
       - ./logs:/app/logs
-    environment:
-      - PYTHONUNBUFFERED=1
     command: python train.py
     
   dqn-evaluation:
-    build: .
+    image: lunar-lander-deep-rl
     container_name: lunar-lander-eval
+    restart: "no"
+    tty: true
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./models:/app/models
       - ./videos:/app/videos
-    environment:
-      - PYTHONUNBUFFERED=1
-    command: python evaluate.py --model ./models/best_model.pth --episodes 100
+    command: xvfb-run -s "-screen 0 1024x768x24" python evaluate.py --model ./models/best_model.pth --episodes 3
     profiles:
       - evaluation

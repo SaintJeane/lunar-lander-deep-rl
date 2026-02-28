@@ -1,7 +1,12 @@
-torch>=2.0.0
-gymnasium[box2d]==0.29.1
-numpy>=1.24.0
-matplotlib>=3.7.0
-tqdm>=4.65.0
-tensorboard>=2.13.0
-# ipykernel>=6.22.0
+torch
+gymnasium
+# pybox2d # if gymnasium[box2d] is finicky
+gymnasium[box2d]
+numpy
+matplotlib
+tqdm
+tensorboard
+seaborn
+ipykernel
+pytest
+moviepy # for the recorded video storage

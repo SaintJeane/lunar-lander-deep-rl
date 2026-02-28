@@ -67,7 +67,14 @@ else
 fi
 
 # Activate virtual environment
-source venv/bin/activate
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+    source venv/Scripts/activate
+elif
+    source venv/bin/activate
+else
+    print error "Could not activate virtual environment"
+    exit 1
+fi
 
 # Upgrade pip
 echo ""
@@ -78,20 +85,30 @@ print_status "pip upgraded"
 # Install dependencies
 echo ""
 echo "Installing dependencies..."
-pip install -r requirements.txt
-print_status "Dependencies installed"
+# pip install -r requirements.txt
+# print_status "Dependencies installed"
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+    print_status "Dependencies installed"
+else
+    print_error "requirements.txt not found"
+    exit 1
+fi
+
+# Ensure core packages are present
+python -c "import torch, gym, moviepy" 2>/dev/null || print_warning "Some core packages missing (torch, gym, moviepy)"
 
 # Install development dependencies
 echo ""
 echo "Installing development dependencies..."
-pip install pytest pytest-cov flake8 black jupyter > /dev/null 2>&1
+pip install pytest pytest-cov flake8 black jupyter pre-commit > /dev/null 2>&1
 print_status "Development dependencies installed"
 
 # Create necessary directories
 echo ""
 echo "Creating project directories..."
-mkdir -p models plots videos logs
-touch models/.gitkeep plots/.gitkeep logs/.gitkeep
+mkdir -p models plots videos logs assets/videos
+touch models/.gitkeep plots/.gitkeep logs/.gitkeep videos/.gitkeep assets/videos/.gitkeep
 print_status "Directories created"
 
 # Download pre-trained model (if available)
@@ -106,7 +123,7 @@ fi
 # Run tests
 echo ""
 echo "Running tests..."
-if pytest test_dqn.py -v --tb=short > /dev/null 2>&1; then
+if pytest test_dqn.py -v --tb=short; then
     print_status "All tests passed"
 else
     print_warning "Some tests failed. Check test output for details."
@@ -122,6 +139,26 @@ else
     print_warning "Docker not found. Docker support will be limited."
 fi
 
+# Make check
+echo ""
+echo "Checking gifsicle installation..."
+if command -v gifsicle &> /dev/null; then
+    print_status "gifsicle detected (GIF optimization available)"
+else
+    print_warning "gifsicle not found. GIF optimization will be skipped."
+fi
+
+# Git LFS check
+echo ""
+echo "Checking Git LFS..."
+if command -v git &> /dev/null; then
+    if git lfs &> /dev/null; then
+        print_status "Git LFS detected"
+    else
+        print_warning "Git LFS not found. Large model files may not sync correctly."
+    fi
+fi
+
 # Setup summary
 echo ""
 echo "=========================================="
@@ -133,13 +170,16 @@ echo "  📁 models/     - Model checkpoints"
 echo "  📁 plots/      - Training visualizations"
 echo "  📁 videos/     - Recorded episodes"
 echo "  📁 logs/       - Training logs"
+echo "  📁 assets/videos - GIFs from the evaluated videos"
 echo ""
 echo "Quick start commands:"
 echo "  1. Activate environment:  source venv/bin/activate"
-echo "  2. Train agent:           python train.py"
-echo "  3. Evaluate agent:        python evaluate.py --model models/best_model.pth"
-echo "  4. Run tests:             pytest test_dqn.py -v"
-echo "  5. View help:             make help"
+echo "  2. Train DQN:             python train.py"
+echo "  3. Train Double DQN:      python train.py --double-dqn"
+echo "  4. Evaluate agent:        python evaluate.py --model models/path_to_best_model.pth"
+echo "  5. Convert to GIFs:       make convert-gifs"
+echo "  5. Run tests:             pytest test_dqn.py -v"
+echo "  6. View help:             make help"
 echo ""
 echo "Docker commands:"
 echo "  - Build:                  docker-compose build"

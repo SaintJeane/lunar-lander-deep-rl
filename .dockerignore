@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache
+
+# Local environments
+venv/
+env/
+
+# Training artifacts
+models/
+# plots/
+videos/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -58,3 +58,8 @@ Thumbs.db
 
 # Docker
 # .dockerignore
+
+# Coverage artifacts
+.coverage
+coverage.xml
+htmlcov/

@@ -30,7 +30,7 @@ def set_seed(seed, env):
 
 # argument parser
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train DQN on LunarLander")
+    parser = argparse.ArgumentParser(description="Train agent on LunarLander")
 
     # Core Hyperparameters
     parser.add_argument("--lr", type=float)
@@ -57,7 +57,7 @@ def parse_args():
 
 def train_dqn(args):
     """
-    Train DQN agent on LunarLander-v2 environment.
+    Train agent on LunarLander environment.
 
     Args:
         args: parsed arguments used in training the agent
@@ -257,7 +257,7 @@ def plot_training_results(
     axes[0].set_xlabel("Episode", fontsize=12)
     axes[0].set_ylabel("Total Reward", fontsize=12)
     axes[0].set_title(
-        f"{algorithm_name} Training Progress - LunarLander-v2",
+        f"{algorithm_name} Training Progress - {TrainingConfig().env_name}",
         fontsize=14,
         fontweight="bold",
     )

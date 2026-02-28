@@ -1,3 +1,8 @@
 [tool.black]
 line-length = 100
 target-version = ["py39"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.*Swig.*:DeprecationWarning"
+]

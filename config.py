@@ -51,7 +51,7 @@ class DQNConfig:
 class TrainingConfig:
     """Training loop configuration."""
 
-    env_name: str = "LunarLander-v2"
+    env_name: str = "LunarLander-v3"  # LunarLander-v2
     seed: int = 42
     num_episodes: int = 2000
     max_steps: int = 1000

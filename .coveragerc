@@ -1,0 +1,5 @@
+[run]
+omit =
+    train.py
+    evaluate.py
+    convert_videos.py
